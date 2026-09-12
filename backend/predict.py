@@ -1,10 +1,16 @@
+import os
 from tensorflow.keras.models import load_model
 from PIL import Image
 import numpy as np
 
 
 # Load the trained model once when the backend starts
-model = load_model("model/waste_classifier.h5")
+# model = load_model("model/waste_classifier.h5")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "..", "model", "waste_classifier.h5")
+
+model = load_model(MODEL_PATH)
 
 
 # Class names must match the training order
