@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Smart Waste Segregation Classifier
+waste_history.db
+uploads/
+
+# React / Vite frontend
+frontend/node_modules/
+frontend/dist/
+
+# Test images
+*.jpeg
+*.jpg
+*.png
