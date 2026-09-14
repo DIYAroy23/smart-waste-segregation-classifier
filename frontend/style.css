@@ -5,8 +5,10 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #f4f7f5;
-    color: #1f2933;
+    background-image: linear-gradient(rgba(35, 62, 21, 0.552), rgba(46, 125, 50, 0.8)), url(https://images.pexels.com/photos/802221/pexels-photo-802221.jpeg);
+    background-size: cover;
+    
+    color: black;
 }
 
 
@@ -15,8 +17,9 @@ body {
 ========================= */
 
 .header {
-    background: white;
+    background-image: url("hero3.jpeg");
     padding: 22px 7%;
+
 
     display: flex;
     justify-content: space-between;
@@ -32,12 +35,12 @@ body {
 
 .header p {
     margin: 5px 0 0;
-    color: #6b7280;
+    color:#1F2937;
 }
 
 .history-button {
     border: none;
-    background: #1f7a4d;
+    background: #1F2937;
     color: white;
 
     padding: 11px 18px;
@@ -76,7 +79,7 @@ body {
 }
 
 .hero p {
-    color: #6b7280;
+    color: #1F2937;
 
     max-width: 650px;
     margin: auto;
@@ -92,7 +95,7 @@ body {
 .scanner-card,
 .result-card,
 .history-card {
-    background: white;
+    background: #BBF7D0;
 
     border-radius: 16px;
 
@@ -137,7 +140,7 @@ body {
 }
 
 .upload-placeholder p {
-    color: #6b7280;
+    color: #1F2937;
 }
 
 
@@ -166,8 +169,8 @@ body {
 .choose-button {
     display: inline-block;
 
-    background: #e7f3ec;
-    color: #1f7a4d;
+    background: #1F2937;
+    color: white;
 
     font-weight: bold;
 
@@ -194,7 +197,7 @@ body {
 
     border-radius: 9px;
 
-    background: #1f7a4d;
+    background: #1F2937;
     color: white;
 
     font-size: 16px;
@@ -204,7 +207,7 @@ body {
 }
 
 .classify-button:disabled {
-    background: #9ca3af;
+    background: #1F2937;
     cursor: not-allowed;
 }
 
@@ -341,7 +344,7 @@ body {
 .history-header button {
     border: none;
 
-    background: #1f7a4d;
+    background: #1F2937;
     color: white;
 
     padding: 9px 15px;
