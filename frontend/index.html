@@ -1,211 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Smart Waste Segregation Classifier</title>
-
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoSort — Smart Waste Segregation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-    <!-- Header -->
-    <header class="header">
-
-        <div>
-            <h1>Smart Waste Segregation</h1>
-            <p>AI-powered waste classification</p>
-        </div>
-
-        <button id="historyButton" class="history-button">
-            Scan History
-        </button>
-
-    </header>
-
-
-    <!-- Main Content -->
-    <main class="container">
-
-        <!-- Introduction -->
-        <section class="hero">
-
-            <h2>Identify Your Waste</h2>
-
-            <p>
-                Upload an image and our AI model will identify
-                the type of waste and tell you how to dispose of it.
-            </p>
-
-        </section>
-
-
-        <!-- Image Scanner -->
-        <section class="scanner-card">
-
-            <div class="upload-area">
-
-                <!-- Image preview -->
-                <img
-                    id="previewImage"
-                    class="preview-image"
-                    alt="Selected waste image"
-                >
-
-                <!-- Default upload message -->
-                <div id="uploadPlaceholder"
-                     class="upload-placeholder">
-
-                    <div class="upload-icon">📷</div>
-
-                    <h3>Upload a waste image</h3>
-
-                    <p>Choose an image from your device</p>
-
-                </div>
-
-
-                <!-- Choose image -->
-                <label class="choose-button">
-
-                    Choose Image
-
-                    <input
-                        type="file"
-                        id="imageInput"
-                        accept="image/*"
-                        hidden
-                    >
-
-                </label>
-
-            </div>
-
-
-            <!-- Classify button -->
-            <button
-                id="classifyButton"
-                class="classify-button"
-                disabled
-            >
-                Classify Waste
-            </button>
-
-        </section>
-
-
-        <!-- Error message -->
-        <div
-            id="errorMessage"
-            class="error"
-            style="display: none;"
-        ></div>
-
-
-        <!-- Prediction Result -->
-        <section
-            id="resultCard"
-            class="result-card"
-            style="display: none;"
-        >
-
-            <h2>Classification Result</h2>
-
-
-            <div class="result-main">
-
-                <div>
-
-                    <span class="result-label">
-                        Detected Waste
-                    </span>
-
-                    <h3 id="prediction"></h3>
-
-                </div>
-
-
-                <div class="confidence">
-
-                    <span class="result-label">
-                        Confidence
-                    </span>
-
-                    <strong id="confidence"></strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- Category and Bin -->
-            <div class="result-details">
-
-                <div class="detail-box">
-
-                    <span>Category</span>
-
-                    <strong id="category"></strong>
-
-                </div>
-
-
-                <div class="detail-box">
-
-                    <span>Recommended Bin</span>
-
-                    <strong id="bin"></strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- Disposal instructions -->
-            <div class="disposal-box">
-
-                <h3>How to Dispose</h3>
-
-                <p id="disposal"></p>
-
-            </div>
-
-        </section>
-
-
-        <!-- History -->
-        <section
-            id="historyCard"
-            class="history-card"
-            style="display: none;"
-        >
-
-            <div class="history-header">
-
-                <h2>Scan History</h2>
-
-                <button id="closeHistoryButton">
-                    Close
-                </button>
-
-            </div>
-
-
-            <div id="historyList"></div>
-
-        </section>
-
-    </main>
-
-
-    <!-- JavaScript -->
-    <script src="script.js"></script>
+<nav class="navbar">
+  <div class="logo">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2C12 2 5 9 5 14a7 7 0 0 0 14 0c0-5-7-12-7-12z" fill="#74c69d"/>
+    </svg>
+    EcoSort
+  </div>
+  <button class="nav-toggle" id="navToggle">☰</button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="scan.html">Scan</a></li>
+    <li><a href="history.html">History</a></li>
+    <li><a href="nearby.html">Nearby</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-text">
+      <h1>Know where your waste belongs, in one photo.</h1>
+      <p>EcoSort uses a trained image classifier to sort your waste into cardboard, glass, metal, paper, plastic, or general trash — and tells you exactly how to dispose of it.</p>
+      <div class="hero-actions">
+        <a href="scan.html" class="btn btn-primary">Scan an item</a>
+        <a href="nearby.html" class="btn btn-outline">Find recycling points</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <svg viewBox="0 0 420 380" xmlns="http://www.w3.org/2000/svg">
+        <!-- Ground blob -->
+        <ellipse cx="210" cy="340" rx="170" ry="24" fill="#d8f3dc"/>
+        <!-- Recycling bin -->
+        <rect x="150" y="180" width="120" height="140" rx="14" fill="#2d6a4f"/>
+        <rect x="140" y="160" width="140" height="28" rx="10" fill="#1b4332"/>
+        <path d="M195 200 L245 200 L240 300 L200 300 Z" fill="#74c69d" opacity="0.5"/>
+        <!-- Recycling arrows symbol -->
+        <g transform="translate(210,240)">
+          <path d="M-22 -6 L-8 -6 L-8 -16 L10 0 L-8 16 L-8 6 L-22 6 Z" fill="#f8f9f4"/>
+          <path d="M22 6 L8 6 L8 16 L-10 0 L8 -16 L8 -6 L22 -6 Z" fill="#f8f9f4"/>
+        </g>
+        <!-- Leaves cluster left -->
+        <g transform="translate(70,120)">
+          <ellipse cx="0" cy="0" rx="34" ry="18" fill="#74c69d" transform="rotate(-30)"/>
+          <ellipse cx="20" cy="30" rx="28" ry="15" fill="#2d6a4f" transform="rotate(10 20 30)"/>
+          <ellipse cx="-10" cy="35" rx="24" ry="13" fill="#95d5b2" transform="rotate(-15 -10 35)"/>
+        </g>
+        <!-- Leaves cluster right -->
+        <g transform="translate(350,150)">
+          <ellipse cx="0" cy="0" rx="30" ry="16" fill="#2d6a4f" transform="rotate(25)"/>
+          <ellipse cx="-18" cy="26" rx="24" ry="13" fill="#74c69d" transform="rotate(-10 -18 26)"/>
+        </g>
+        <!-- Small sprout beside bin -->
+        <g transform="translate(120,300)">
+          <path d="M0 40 C0 20 -14 10 -14 -10" stroke="#2d6a4f" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <ellipse cx="-14" cy="-14" rx="14" ry="8" fill="#95d5b2" transform="rotate(-20 -14 -14)"/>
+          <ellipse cx="-4" cy="-4" rx="12" ry="7" fill="#74c69d" transform="rotate(20 -4 -4)"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2 style="text-align:center; margin-bottom: 2.5rem;">How it works</h2>
+    <div class="grid-3">
+      <div class="card">
+        <h3 style="font-size:1.15rem; margin-bottom:0.6rem;">1. Capture</h3>
+        <p>Take a photo with your camera or upload one from your device.</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1.15rem; margin-bottom:0.6rem;">2. Classify</h3>
+        <p>Our model identifies the material type and how confident it is.</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1.15rem; margin-bottom:0.6rem;">3. Dispose</h3>
+        <p>Get the right bin and a tip for disposing of it properly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="background: var(--mint-soft);">
+  <div class="container grid-3" style="text-align:center;">
+    <div>
+      <h2 style="font-size:2.2rem;">6</h2>
+      <p>Waste categories recognized</p>
+    </div>
+    <div>
+      <h2 style="font-size:2.2rem;">224×224</h2>
+      <p>Image resolution analyzed</p>
+    </div>
+    <div>
+      <h2 style="font-size:2.2rem;">Instant</h2>
+      <p>Results in seconds</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>EcoSort — Smart Waste Segregation | College Mini Project</p>
+</footer>
+
+<script>
+  document.getElementById('navToggle').addEventListener('click', () => {
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+</script>
 
 </body>
-
 </html>

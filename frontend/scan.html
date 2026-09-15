@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan — EcoSort</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .scan-wrap { max-width: 640px; margin: 0 auto; }
+  .drop-zone {
+    border: 2px dashed var(--sage);
+    border-radius: 14px;
+    padding: 2.5rem;
+    text-align: center;
+    background: var(--mint-soft);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .drop-zone.dragover { background: var(--mint); }
+  .scan-actions { display: flex; gap: 1rem; justify-content: center; margin-top: 1.2rem; flex-wrap: wrap; }
+  #previewImg { max-height: 320px; border-radius: 12px; margin: 1.5rem auto; border: 1px solid var(--mint); }
+  #videoPreview { max-height: 320px; border-radius: 12px; margin: 1rem auto; display: none; }
+  .result-card { margin-top: 2rem; display: none; }
+  .conf-bar-bg { background: var(--mint); border-radius: 8px; height: 14px; overflow: hidden; margin: 0.4rem 0 1.2rem; }
+  .conf-bar-fill { background: var(--moss); height: 100%; border-radius: 8px; transition: width 0.4s ease; }
+  .prob-row { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.3rem 0; border-bottom: 1px solid var(--mint); }
+  .badge { display: inline-block; background: var(--mint); color: var(--forest); padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
+  .loader { display:none; text-align:center; padding: 1.5rem; color: var(--moss); font-weight: 600; }
+  .error-msg { display:none; background:#fde2e2; color:#9b1c1c; padding: 0.9rem 1.2rem; border-radius: 10px; margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2C12 2 5 9 5 14a7 7 0 0 0 14 0c0-5-7-12-7-12z" fill="#74c69d"/></svg>
+    EcoSort
+  </div>
+  <button class="nav-toggle" id="navToggle">☰</button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="scan.html" class="active">Scan</a></li>
+    <li><a href="history.html">History</a></li>
+    <li><a href="nearby.html">Nearby</a></li>
+  </ul>
+</nav>
+
+<section>
+  <div class="container scan-wrap">
+    <h1 style="margin-bottom:0.5rem;">Scan an item</h1>
+    <p style="margin-bottom:1.5rem; color:#3a3a3a;">Upload a photo or use your camera to identify the waste type.</p>
+
+    <div class="drop-zone" id="dropZone">
+      <p><strong>Drag & drop</strong> an image here, or click to browse</p>
+      <input type="file" id="fileInput" accept="image/*" hidden>
+    </div>
+
+    <video id="videoPreview" autoplay playsinline></video>
+    <canvas id="captureCanvas" hidden></canvas>
+
+    <div class="scan-actions">
+      <button class="btn btn-outline" id="cameraBtn">Use Camera</button>
+      <button class="btn btn-primary" id="captureBtn" style="display:none;">Capture Photo</button>
+    </div>
+
+    <img id="previewImg" style="display:none;">
+
+    <div class="scan-actions" id="submitActions" style="display:none;">
+      <button class="btn btn-primary" id="submitBtn">Identify Waste</button>
+      <button class="btn btn-outline" id="resetBtn">Reset</button>
+    </div>
+
+    <div class="loader" id="loader">Analyzing image...</div>
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="card result-card" id="resultCard">
+      <span class="badge" id="resultBadge"></span>
+      <h3 style="margin-top:0.8rem;">Confidence</h3>
+      <div class="conf-bar-bg"><div class="conf-bar-fill" id="confBar" style="width:0%;"></div></div>
+      <p id="confText" style="margin-bottom:1rem; font-weight:600;"></p>
+
+      <h3 style="margin-bottom:0.5rem;">Disposal guidance</h3>
+      <p><strong>Bin:</strong> <span id="binText"></span></p>
+      <p style="margin-bottom:1rem;"><strong>Tip:</strong> <span id="tipText"></span></p>
+
+      <h3 style="margin-bottom:0.5rem;">Full breakdown</h3>
+      <div id="probList"></div>
+    </div>
+  </div>
+</section>
+
+<footer><p>EcoSort — Smart Waste Segregation | College Mini Project</p></footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+const API_URL = "http://127.0.0.1:5000/predict";
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const previewImg = document.getElementById('previewImg');
+const submitActions = document.getElementById('submitActions');
+const submitBtn = document.getElementById('submitBtn');
+const resetBtn = document.getElementById('resetBtn');
+const cameraBtn = document.getElementById('cameraBtn');
+const captureBtn = document.getElementById('captureBtn');
+const videoPreview = document.getElementById('videoPreview');
+const captureCanvas = document.getElementById('captureCanvas');
+const loader = document.getElementById('loader');
+const errorMsg = document.getElementById('errorMsg');
+const resultCard = document.getElementById('resultCard');
+
+let currentBlob = null;
+let stream = null;
+
+// --- Drag & drop / click upload ---
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length) handleFile(e.target.files[0]);
+});
+
+function handleFile(file) {
+  if (!file.type.startsWith('image/')) return showError('Please select a valid image file.');
+  currentBlob = file;
+  const url = URL.createObjectURL(file);
+  previewImg.src = url;
+  previewImg.style.display = 'block';
+  submitActions.style.display = 'flex';
+  resultCard.style.display = 'none';
+  errorMsg.style.display = 'none';
+}
+
+// --- Camera ---
+cameraBtn.addEventListener('click', async () => {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    videoPreview.srcObject = stream;
+    videoPreview.style.display = 'block';
+    captureBtn.style.display = 'inline-block';
+    cameraBtn.style.display = 'none';
+    dropZone.style.display = 'none';
+  } catch (err) {
+    showError('Camera access denied or unavailable. Try uploading an image instead.');
+  }
+});
+
+captureBtn.addEventListener('click', () => {
+  const ctx = captureCanvas.getContext('2d');
+  captureCanvas.width = videoPreview.videoWidth;
+  captureCanvas.height = videoPreview.videoHeight;
+  ctx.drawImage(videoPreview, 0, 0);
+  captureCanvas.toBlob((blob) => {
+    currentBlob = blob;
+    previewImg.src = URL.createObjectURL(blob);
+    previewImg.style.display = 'block';
+    submitActions.style.display = 'flex';
+    stopCamera();
+  }, 'image/jpeg', 0.9);
+});
+
+function stopCamera() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  videoPreview.style.display = 'none';
+  captureBtn.style.display = 'none';
+  cameraBtn.style.display = 'inline-block';
+  dropZone.style.display = 'block';
+}
+
+// --- Submit to backend ---
+submitBtn.addEventListener('click', async () => {
+  if (!currentBlob) return;
+  loader.style.display = 'block';
+  resultCard.style.display = 'none';
+  errorMsg.style.display = 'none';
+
+  const formData = new FormData();
+  formData.append('image', currentBlob, 'scan.jpg');
+
+  try {
+    const res = await fetch(API_URL, { method: 'POST', body: formData });
+    const data = await res.json();
+    loader.style.display = 'none';
+
+    if (!res.ok || !data.success) {
+      return showError(data.error || 'Prediction failed. Please try again.');
+    }
+    renderResult(data);
+    saveToHistory(data, previewImg.src);
+  } catch (err) {
+    loader.style.display = 'none';
+    showError('Could not reach the server. Make sure the backend is running on port 5000.');
+  }
+});
+
+function renderResult(data) {
+  document.getElementById('resultBadge').textContent = data.predicted_class.toUpperCase();
+  const pct = Math.round(data.confidence * 100);
+  document.getElementById('confBar').style.width = pct + '%';
+  document.getElementById('confText').textContent = pct + '% confident';
+  document.getElementById('binText').textContent = data.disposal.bin || '—';
+  document.getElementById('tipText').textContent = data.disposal.tip || '—';
+
+  const probList = document.getElementById('probList');
+  probList.innerHTML = '';
+  Object.entries(data.probabilities)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([label, val]) => {
+      const row = document.createElement('div');
+      row.className = 'prob-row';
+      row.innerHTML = `<span>${label}</span><span>${Math.round(val * 100)}%</span>`;
+      probList.appendChild(row);
+    });
+
+  resultCard.style.display = 'block';
+}
+
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.style.display = 'block';
+}
+
+// --- Save to localStorage history ---
+function saveToHistory(data, imageDataUrl) {
+  const history = JSON.parse(localStorage.getItem('ecosort_history') || '[]');
+  history.unshift({
+    class: data.predicted_class,
+    confidence: data.confidence,
+    bin: data.disposal.bin,
+    tip: data.disposal.tip,
+    image: imageDataUrl,
+    timestamp: new Date().toISOString()
+  });
+  localStorage.setItem('ecosort_history', JSON.stringify(history.slice(0, 50)));
+}
+
+resetBtn.addEventListener('click', () => {
+  currentBlob = null;
+  previewImg.style.display = 'none';
+  submitActions.style.display = 'none';
+  resultCard.style.display = 'none';
+  errorMsg.style.display = 'none';
+  fileInput.value = '';
+});
+</script>
+
+</body>
+</html>

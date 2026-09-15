@@ -1,1 +1,0 @@
-Frontend training files go here

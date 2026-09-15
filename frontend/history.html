@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>History — EcoSort</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+  .hist-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; margin-bottom: 0.8rem; }
+  .hist-badge { display:inline-block; background: var(--mint); color: var(--forest); padding: 0.25rem 0.7rem; border-radius: 16px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; }
+  .hist-meta { font-size: 0.82rem; color: #666; margin-top: 0.4rem; }
+  .empty-state { text-align: center; padding: 4rem 1rem; color: #666; }
+  .top-actions { display:flex; justify-content: space-between; align-items:center; flex-wrap: wrap; gap: 1rem; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2C12 2 5 9 5 14a7 7 0 0 0 14 0c0-5-7-12-7-12z" fill="#74c69d"/></svg>
+    EcoSort
+  </div>
+  <button class="nav-toggle" id="navToggle">☰</button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="scan.html">Scan</a></li>
+    <li><a href="history.html" class="active">History</a></li>
+    <li><a href="nearby.html">Nearby</a></li>
+  </ul>
+</nav>
+
+<section>
+  <div class="container">
+    <div class="top-actions">
+      <h1>Scan history</h1>
+      <button class="btn btn-outline" id="clearBtn">Clear history</button>
+    </div>
+    <div id="historyContainer"></div>
+  </div>
+</section>
+
+<footer><p>EcoSort — Smart Waste Segregation | College Mini Project</p></footer>
+
+<script>
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+function loadHistory() {
+  const container = document.getElementById('historyContainer');
+  const history = JSON.parse(localStorage.getItem('ecosort_history') || '[]');
+
+  if (history.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>No scans yet.</p>
+        <p><a href="scan.html" class="btn btn-primary" style="margin-top:1rem; display:inline-block;">Scan your first item</a></p>
+      </div>`;
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'history-grid';
+
+  history.forEach((item) => {
+    const card = document.createElement('div');
+    card.className = 'card hist-card';
+    const date = new Date(item.timestamp);
+    card.innerHTML = `
+      <img src="${item.image}" alt="${item.class}">
+      <span class="hist-badge">${item.class.toUpperCase()}</span>
+      <p>${Math.round(item.confidence * 100)}% confidence</p>
+      <p class="hist-meta">${item.bin}</p>
+      <p class="hist-meta">${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>
+    `;
+    grid.appendChild(card);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(grid);
+}
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  if (confirm('Clear all scan history? This cannot be undone.')) {
+    localStorage.removeItem('ecosort_history');
+    loadHistory();
+  }
+});
+
+loadHistory();
+</script>
+
+</body>
+</html>

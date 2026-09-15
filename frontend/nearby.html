@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nearby — EcoSort</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  #map { height: 480px; border-radius: 14px; margin-top: 1.5rem; border: 1px solid var(--mint); }
+  .status-msg { margin-top: 1rem; color: #3a3a3a; }
+  .locate-btn { margin-top: 1rem; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2C12 2 5 9 5 14a7 7 0 0 0 14 0c0-5-7-12-7-12z" fill="#74c69d"/></svg>
+    EcoSort
+  </div>
+  <button class="nav-toggle" id="navToggle">☰</button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="scan.html">Scan</a></li>
+    <li><a href="history.html">History</a></li>
+    <li><a href="nearby.html" class="active">Nearby</a></li>
+  </ul>
+</nav>
+
+<section>
+  <div class="container">
+    <h1>Nearby recycling points</h1>
+    <p>Finds recycling and waste disposal points near your current location using OpenStreetMap data.</p>
+    <button class="btn btn-primary locate-btn" id="locateBtn">Find recycling points near me</button>
+    <p class="status-msg" id="statusMsg"></p>
+    <div id="map"></div>
+  </div>
+</section>
+
+<footer><p>EcoSort — Smart Waste Segregation | College Mini Project</p></footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+let map = L.map('map').setView([20.5937, 78.9629], 5); // default: India view
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+const statusMsg = document.getElementById('statusMsg');
+let userMarker = null;
+
+document.getElementById('locateBtn').addEventListener('click', () => {
+  if (!navigator.geolocation) {
+    statusMsg.textContent = 'Geolocation is not supported by your browser.';
+    return;
+  }
+  statusMsg.textContent = 'Locating you...';
+  navigator.geolocation.getCurrentPosition(onLocationFound, onLocationError, { timeout: 10000 });
+});
+
+function onLocationFound(pos) {
+  const lat = pos.coords.latitude;
+  const lon = pos.coords.longitude;
+
+  map.setView([lat, lon], 14);
+  if (userMarker) map.removeLayer(userMarker);
+  userMarker = L.marker([lat, lon]).addTo(map).bindPopup('You are here').openPopup();
+
+  statusMsg.textContent = 'Searching for nearby recycling points...';
+  fetchRecyclingPoints(lat, lon);
+}
+
+function onLocationError() {
+  statusMsg.textContent = 'Could not get your location. Please allow location access and try again.';
+}
+
+async function fetchRecyclingPoints(lat, lon) {
+  const radius = 5000; // 5km
+  const query = `
+    [out:json][timeout:25];
+    (
+      node["amenity"="recycling"](around:${radius},${lat},${lon});
+      node["amenity"="waste_disposal"](around:${radius},${lat},${lon});
+      node["amenity"="waste_basket"](around:${radius},${lat},${lon});
+    );
+    out body;
+  `;
+
+  try {
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: query
+    });
+    const data = await res.json();
+
+    if (!data.elements || data.elements.length === 0) {
+      statusMsg.textContent = 'No recycling points found within 5km. Try a different area or check back later.';
+      return;
+    }
+
+    data.elements.forEach((el) => {
+      const name = el.tags && (el.tags.name || el.tags.amenity) || 'Recycling point';
+      const marker = L.marker([el.lat, el.lon]).addTo(map);
+      marker.bindPopup(`<strong>${name}</strong>`);
+    });
+
+    statusMsg.textContent = `Found ${data.elements.length} point(s) nearby.`;
+  } catch (err) {
+    statusMsg.textContent = 'Could not fetch recycling points. Check your internet connection.';
+  }
+}
+</script>
+
+</body>
+</html>
